@@ -1,9 +1,8 @@
 package nl.ordina.tacos.boundary;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.PostConstruct;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -12,7 +11,9 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import nl.ordina.tacos.entity.Taco;
 import rx.Observable;
 import rx.Subscription;
 
@@ -31,27 +32,25 @@ public class TacosResource {
 
     @GET
     public void getTacos(@Suspended AsyncResponse response) {
-        Observable<JsonArray> tacos = getRandomTaco()
+        Observable<List<Taco>> tacos = getRandomTaco()
                 .mergeWith(getRandomTaco()) // Can be different services
-                .reduce(Json.createArrayBuilder(), (result, taco) -> result.add(taco))
-                .map(builder -> builder.build());
+                .collect(ArrayList::new, (result, taco) -> result.add(taco));
 
         Subscription subscription = tacos.subscribe(
-                result -> {
-                    System.out.println("lol");
-                    response.resume(result);
-                }, //result.add(taco),
+                // GenericEntity is a hack to prevent type information loss
+                // and keep json marshaller working
+                result -> response.resume(new GenericEntity<List<Taco>>(result) {}), 
                 error -> response.resume(error),
-                () -> System.out.println("foo") //response.resume(result.build())
+                () -> System.out.println("Completed.")
         );
     }
 
-    private Observable<JsonObject> getRandomTaco() {
+    private Observable<Taco> getRandomTaco() {
         return Observable.from(
-            tacoProvider.request()
+                tacoProvider.request()
                 .accept(MediaType.APPLICATION_JSON)
                 .async()
-                .get(JsonObject.class)
+                .get(Taco.class)
         );
     }
 
