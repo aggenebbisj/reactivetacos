@@ -51,29 +51,8 @@ public class TacosResource {
 
     @GET
     @Path("{number}")
-    public List<Taco> getTacos(@PathParam("number") int number) {
-        List<Taco> result = new ArrayList<>();
-        
-        infiniteTacos().take(number).toList().subscribe(new Observer<List<Taco>>() {
-
-            @Override
-            public void onCompleted() {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
-
-            @Override
-            public void onNext(List<Taco> tacos) {
-                result.addAll(tacos);
-            }
-            
-        });
-        
-        return result;
+    public void getTacos(@PathParam("number") int number, @Suspended AsyncResponse response) {
+        infiniteTacos().take(number).toList().subscribe(response::resume);
     }
     
     private Observable<Taco> getRandomTacoFromFuture() {
