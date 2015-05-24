@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.Stateless;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -20,8 +21,8 @@ import javax.ws.rs.core.MediaType;
 
 import nl.ordina.tacos.entity.Taco;
 import rx.Observable;
-import rx.Observer;
 
+@Stateless
 @Produces(MediaType.APPLICATION_JSON)
 @Path("tacos")
 public class TacosResource {
